@@ -3,7 +3,7 @@ from .tableau_exceptions import *
 from .logger import Logger
 import re
 from lxml import etree
-from io import StringIO
+from io import StringIO, BytesIO
 
 
 class TableauBase(object):

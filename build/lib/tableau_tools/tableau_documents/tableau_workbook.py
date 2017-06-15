@@ -13,7 +13,7 @@ class TableauWorkbook(TableauBase):
             self.log(".twb found in wb_string, assuming it is actually a filename. Opening file")
             fh = open(self.wb_string, 'rb')
             self.wb_string = fh.read()
-        self.wb = StringIO(self.wb_string)
+        self.wb = BytesIO(self.wb_string)
         self.start_xml = ""
         self.end_xml = ""
         self.datasources = {}
@@ -25,6 +25,7 @@ class TableauWorkbook(TableauBase):
             self.enable_logging(self.logger)
 
         for line in self.wb:
+            line = line.decode('utf-8')
             # Start parsing the datasources
             if start_flag is True and ds_flag is False:
                 self.start_xml += line

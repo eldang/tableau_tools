@@ -38,7 +38,8 @@ class TableauDatasourceGenerator(TableauBase):
         self.connection.set('class', self.ds_class)
         self.connection.set('dbname', self.dbname)
         self.connection.set('odbc-native-protocol', 'yes')
-        self.connection.set('server', self.server)
+        if self.server is not None:
+            self.connection.set('server', self.server)
         self.connection.set('authentication', 'sspi')
         if initial_sql is not None:
             self.connection.set('one-time-sql', initial_sql)

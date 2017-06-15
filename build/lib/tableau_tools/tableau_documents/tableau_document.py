@@ -19,7 +19,6 @@ class TableauColumns(TableauBase):
     def translate_captions(self):
         self.start_log_block()
         for column in self.columns_list:
-            print(column.get('caption'))
             if column.get('caption') is None:
                 trans = self.__find_translation(column.get('name'))
             else:

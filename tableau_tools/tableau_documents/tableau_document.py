@@ -19,15 +19,15 @@ class TableauColumns(TableauBase):
     def translate_captions(self):
         self.start_log_block()
         for column in self.columns_list:
-            if column.getroot().get('caption') is None:
-                trans = self.__find_translation(column.getroot().get('name'))
+            if column.get('caption') is None:
+                trans = self.__find_translation(column.get('name'))
             else:
                 # Try to match caption first, if not move to name
-                trans = self.__find_translation(column.getroot().get('caption'))
+                trans = self.__find_translation(column.get('caption'))
                 if trans is None:
-                    trans = self.__find_translation(column.getroot().get('name'))
+                    trans = self.__find_translation(column.get('name'))
             if trans is not None:
-                column.getroot().set('caption', trans)
+                column.set('caption', trans)
         self.end_log_block()
 
     def __find_translation(self, match_str):

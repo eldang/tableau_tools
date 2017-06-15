@@ -58,7 +58,7 @@ class TableauWorkbook(TableauBase):
         xml = self.start_xml
         for ds in self.datasources:
             self.log('Adding in XML from datasource {}'.format(ds))
-            xml += self.datasources.get(ds).get_datasource_xml()
+            xml += self.datasources.get(ds).get_datasource_xml().decode('utf-8')
         xml += self.end_xml
         self.end_log_block()
         return xml
@@ -67,7 +67,7 @@ class TableauWorkbook(TableauBase):
         self.start_log_block()
         try:
             lh = open(filename, 'wb')
-            lh.write(self.get_workbook_xml())
+            lh.write(self.get_workbook_xml().encode('utf-8'))
             lh.close()
             self.end_log_block()
         except IOError:

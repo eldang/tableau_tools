@@ -13,7 +13,7 @@ class Logger(object):
 
     def log(self, l):
         cur_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        log_line = cur_time + " : " + l + "\n"
+        log_line = cur_time + " : " + str(l) + "\n"
         try:
             self.__log_handle.write(log_line.encode('utf8'))
         except UnicodeDecodeError as e:

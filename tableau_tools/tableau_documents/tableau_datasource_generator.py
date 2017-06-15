@@ -620,8 +620,129 @@ class TableauParametersGenerator(TableauBase):
         a = etree.Element('aliases')
         a.set('enabled', 'yes')
         self.ds_xml.append(a)
-
+        self.column_aliases = {}
+        self.column_instances = []
+        self.datasource_filters = []
         self.parameters = []
+
+    def generate_filters(self, filter_array):
+        return_array = []
+        for filter_def in filter_array:
+            f = etree.Element('filter')
+            f.set('class', filter_def['type'])
+            f.set('column', filter_def['column_name'])
+            f.set('filter-group', '2')
+            if filter_def['type'] == 'quantitative':
+                f.set('include-values', 'in-range')
+                if filter_def['min'] is not None:
+                    m = etree.Element('min')
+                    m.text = str(filter_def['min'])
+                    f.append(m)
+                if filter_def['max'] is not None:
+                    m = etree.Element('max')
+                    m.text = str(filter_def['max'])
+                    f.append(m)
+            elif filter_def['type'] == 'relative-date':
+                f.set('first-period', filter_def['first-period'])
+                f.set('include-future', filter_def['include-future'])
+                f.set('last-period', filter_def['last-period'])
+                f.set('include-null', 'false')
+                f.set('period-type', filter_def['period-type'])
+
+            elif filter_def['type'] == 'categorical':
+                gf = etree.Element('groupfilter')
+                # This attribute has a user namespace
+                gf.set('{' + '{}'.format(self.nsmap['user']) + '}ui-domain', 'database')
+                gf.set('{' + '{}'.format(self.nsmap['user']) + '}ui-enumeration', filter_def['ui-enumeration'])
+                gf.set('{' + '{}'.format(self.nsmap['user']) + '}ui-marker', 'enumerate')
+                if filter_def['ui-manual-selection'] is True:
+                    gf.set('{' + '{}'.format(self.nsmap['user']) + '}ui-manual-selection', 'true')
+                if len(filter_def['values']) == 1:
+                    if filter_def['ui-enumeration'] == 'exclusive':
+                        gf.set('function', 'except')
+                        gf1 = etree.Element('groupfilter')
+                        gf1.set('function', 'member')
+                        gf1.set('level', filter_def['column_name'])
+                    else:
+                        gf.set('function', 'member')
+                        gf.set('level', filter_def['column_name'])
+                        gf1 = gf
+                    # strings need the &quot;, ints do not
+                    if isinstance(filter_def['values'][0], str):
+                        gf1.set('member', quoteattr(filter_def['values'][0]))
+                    else:
+                        gf1.set('member', str(filter_def['values'][0]))
+                    if filter_def['ui-enumeration'] == 'exclusive':
+                        # Single exclude filters include an extra groupfilter set with level-members function
+                        lm = etree.Element('groupfilter')
+                        lm.set('function', 'level-members')
+                        lm.set('level', filter_def['column_name'])
+                        gf.append(lm)
+                        gf.append(gf1)
+                    f.append(gf)
+                else:
+                    if filter_def['ui-enumeration'] == 'exclusive':
+                        gf.set('function', 'except')
+                    else:
+                        gf.set('function', 'union')
+                    for val in filter_def['values']:
+                        gf1 = etree.Element('groupfilter')
+                        gf1.set('function', 'member')
+                        gf1.set('level', filter_def['column_name'])
+                        # String types need &quot; , ints do not
+                        if isinstance(val, str):
+                            gf1.set('member', quoteattr(val))
+                        else:
+                            gf1.set('member', str(val))
+                        gf.append(gf1)
+                    f.append(gf)
+            return_array.append(f)
+        return return_array
+
+    def generate_datasource_filters_section(self):
+        filters = self.generate_filters(self.datasource_filters)
+        filters_array = []
+        for f in filters:
+            filters_array.append(f)
+        return filters_array
+
+    def generate_column_instances_section(self):
+        column_instances_array = []
+        for column_instance in self.column_instances:
+            ci = etree.Element('column-instance')
+            ci.set('column', column_instance['column'])
+            ci.set('derivation', 'None')
+            ci.set('name', column_instance['name'])
+            ci.set('pivot', 'key')
+            ci.set('type', column_instance['type'])
+            column_instances_array.append(ci)
+        return column_instances_array
+
+    def generate_aliases_column_section(self):
+        column_aliases_array = []
+
+        # Now to put in each column tag
+        for column_alias in self.column_aliases:
+            c = etree.Element("column")
+            # Name is the Tableau Field Alias, always surrounded by brackets SQL Server style
+            c.set("name", "[{}]".format(column_alias))
+            if self.column_aliases[column_alias]["datatype"] is not None:
+                c.set("datatype", self.column_aliases[column_alias]["datatype"])
+            if self.column_aliases[column_alias]["caption"] is not None:
+                c.set("caption", self.column_aliases[column_alias]["caption"])
+            if self.column_aliases[column_alias]["role"] is not None:
+                c.set("role", self.column_aliases[column_alias]["role"])
+            if self.column_aliases[column_alias]["type"] is not None:
+                c.set("type", self.column_aliases[column_alias]["type"])
+            if self.column_aliases[column_alias]['calculation'] is not None:
+                calc = etree.Element('calculation')
+                calc.set('class', 'tableau')
+                # quoteattr adds an extra real set of quotes around the string, which needs to be sliced out
+                calc.set('formula', quoteattr(self.column_aliases[column_alias]['calculation'])[1:-1])
+                c.append(calc)
+            column_aliases_array.append(c)
+        return column_aliases_array
+
 
     def add_parameter(self, name, datatype, allowable_values, current_value, values_list=None, range_dict=None):
         if datatype.lower() not in ['string', 'integer', 'datetime', 'date', 'real', 'boolean']:

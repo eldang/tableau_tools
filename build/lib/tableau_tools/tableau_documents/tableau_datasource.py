@@ -32,6 +32,7 @@ class TableauDatasource(TableauBase):
         if self.ds_name == 'Parameters':
             self.parameters = True
             self.ds_generator = TableauParametersGenerator(logger_obj=self.logger)
+            self.tde_filename = None
         else:
 # TODO/WARNING: I think this will miss additional connections if a datasource has more than one
             connection_xml_obj = self.xml.getroot().find('connection').find('named-connections').find('named-connection').find('connection')
@@ -89,30 +90,29 @@ class TableauDatasource(TableauBase):
         print(self.ds_generator)
         print(self.parameters)
 # TODO: handle parameters too!
-        if not self.parameters:
-            cas = self.ds_generator.generate_aliases_column_section()
-            # If there is no existing aliases tag, gotta add one. Unlikely but safety first
-            if len(cas) > 0 and self.xml.getroot().find('aliases') is False:
-                self.xml.append(self.ds_generator.generate_aliases_tag())
-            for c in cas:
-                self.log('Appending the column alias XML')
-                self.xml.getroot().append(c)
-            # Column Instances
-            cis = self.ds_generator.generate_column_instances_section()
-            for ci in cis:
-                self.log('Appending the column-instances XML')
-                self.xml.append(ci)
-            # Datasource Filters
-            dsf = self.ds_generator.generate_datasource_filters_section()
-            self.log('Appending the ds filters to existing XML')
-            for f in dsf:
-                self.xml.getroot().append(f)
-            # Extracts
-            if self.tde_filename is not None:
-                self.log('Generating the extract and XML object related to it')
-                extract_xml = self.ds_generator.generate_extract_section()
-                self.log('Appending the new extract XML to the existing XML')
-                self.xml.getroot().append(extract_xml)
+        cas = self.ds_generator.generate_aliases_column_section()
+        # If there is no existing aliases tag, gotta add one. Unlikely but safety first
+        if len(cas) > 0 and self.xml.getroot().find('aliases') is False:
+            self.xml.append(self.ds_generator.generate_aliases_tag())
+        for c in cas:
+            self.log('Appending the column alias XML')
+            self.xml.getroot().append(c)
+        # Column Instances
+        cis = self.ds_generator.generate_column_instances_section()
+        for ci in cis:
+            self.log('Appending the column-instances XML')
+            self.xml.append(ci)
+        # Datasource Filters
+        dsf = self.ds_generator.generate_datasource_filters_section()
+        self.log('Appending the ds filters to existing XML')
+        for f in dsf:
+            self.xml.getroot().append(f)
+        # Extracts
+        if self.tde_filename is not None:
+            self.log('Generating the extract and XML object related to it')
+            extract_xml = self.ds_generator.generate_extract_section()
+            self.log('Appending the new extract XML to the existing XML')
+            self.xml.getroot().append(extract_xml)
 
         xmlstring = etree.tostring(self.xml, pretty_print=True, xml_declaration=True, encoding='utf-8')
         self.log(xmlstring)

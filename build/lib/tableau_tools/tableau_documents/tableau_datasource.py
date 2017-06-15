@@ -31,14 +31,14 @@ class TableauDatasource(TableauBase):
         # Internal "Parameters" datasource of a TWB acts differently
         if self.ds_name == 'Parameters':
             self.parameters = True
-            self.ds_generator = TableauParametersGenerator()
+            self.ds_generator = TableauParametersGenerator(logger_obj=self.logger)
         else:
             connection_xml_obj = self.xml.getroot().find('connection')
             self.log('connection tags found, building a TableauConnection object')
             self.connection = TableauConnection(connection_xml_obj)
 
             self.repository_location = None
-            if len(self.xml.getroot().find('repository-location')) == 0:
+            if self.xml.getroot().find('repository-location') is None:
                 repository_location_xml = self.xml.getroot().find('repository-location')
                 self.repository_location = TableauRepositoryLocation(repository_location_xml, self.logger)
 
@@ -46,12 +46,15 @@ class TableauDatasource(TableauBase):
             if self.connection.get_connection_type() == 'sqlproxy':
                 self.ds_generator = None
             else:
-                self.ds_generator = TableauDatasourceGenerator(self.connection.get_connection_type(),
-                                                               self.xml.getroot().get('formatted-name'),
-                                                               self.connection.get_server(),
-                                                               self.connection.get_dbname(),
-                                                               self.logger,
-                                                               authentication='username-password', initial_sql=None)
+                self.ds_generator = TableauDatasourceGenerator(
+                    ds_type=self.connection.get_connection_type(),
+                    ds_name=self.xml.getroot().get('formatted-name'),
+                    server=self.connection.get_server(),
+                    dbname=self.connection.get_dbname(),
+                    logger_obj=self.logger,
+                    authentication='username-password',
+                    initial_sql=None
+                )
 
     def get_datasource_name(self):
         self.start_log_block()

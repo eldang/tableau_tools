@@ -33,7 +33,8 @@ class TableauDatasource(TableauBase):
             self.parameters = True
             self.ds_generator = TableauParametersGenerator(logger_obj=self.logger)
         else:
-            connection_xml_obj = self.xml.getroot().find('connection')
+# TODO/WARNING: I think this will miss additional connections if a datasource has more than one
+            connection_xml_obj = self.xml.getroot().find('connection').find('named-connections').find('named-connection').find('connection')
             self.log('connection tags found, building a TableauConnection object')
             self.connection = TableauConnection(connection_xml_obj)
 

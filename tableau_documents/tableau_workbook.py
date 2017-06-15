@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from ..tableau_base import *
-from tableau_datasource import TableauDatasource
+from .tableau_datasource import TableauDatasource
 
 
 class TableauWorkbook(TableauBase):
     def __init__(self, wb_string, logger_obj=None):
         self.logger = logger_obj
-        self.log(u'Initializing a TableauWorkbook object')
+        self.log('Initializing a TableauWorkbook object')
         self.wb_string = wb_string
         if self.wb_string.find('.twb') != -1:
-            self.log(u".twb found in wb_string, assuming it is actually a filename. Opening file")
+            self.log(".twb found in wb_string, assuming it is actually a filename. Opening file")
             fh = open(self.wb_string, 'rb')
             self.wb_string = fh.read()
         self.wb = StringIO(self.wb_string)
@@ -33,16 +33,16 @@ class TableauWorkbook(TableauBase):
             if ds_flag is True:
                 current_ds += line
                 # Break and load the datasource
-                if line.find(u"</datasource>") != -1:
-                    self.log(u"Building TableauDatasource object")
+                if line.find("</datasource>") != -1:
+                    self.log("Building TableauDatasource object")
                     ds_obj = TableauDatasource(current_ds, logger_obj=self.logger)
                     self.datasources[ds_obj.get_datasource_name()] = ds_obj
                     current_ds = ""
-            if line.find(u"<datasources") != -1 and start_flag is True:
+            if line.find("<datasources") != -1 and start_flag is True:
                 start_flag = False
                 ds_flag = True
 
-            if line.find(u"</datasources>") != -1 and ds_flag is True:
+            if line.find("</datasources>") != -1 and ds_flag is True:
                 self.end_xml += line
                 ds_flag = False
 
@@ -56,7 +56,7 @@ class TableauWorkbook(TableauBase):
         self.start_log_block()
         xml = self.start_xml
         for ds in self.datasources:
-            self.log(u'Adding in XML from datasource {}'.format(ds))
+            self.log('Adding in XML from datasource {}'.format(ds))
             xml += self.datasources.get(ds).get_datasource_xml()
         xml += self.end_xml
         self.end_log_block()
@@ -70,6 +70,6 @@ class TableauWorkbook(TableauBase):
             lh.close()
             self.end_log_block()
         except IOError:
-            self.log(u"Error: File '{} cannot be opened to write to".format(filename))
+            self.log("Error: File '{} cannot be opened to write to".format(filename))
             self.end_log_block()
             raise

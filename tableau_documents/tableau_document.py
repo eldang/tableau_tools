@@ -6,7 +6,7 @@ from ..tableau_base import *
 class TableauColumns(TableauBase):
     def __init__(self, columns_list, logger_obj=None):
         self.logger = logger_obj
-        self.log(u'Initializing a TableauColumns object')
+        self.log('Initializing a TableauColumns object')
         self.__translation_dict = None
         # List of lxml columns objects
         self.columns_list = columns_list
@@ -40,7 +40,7 @@ class TableauColumns(TableauBase):
 class TableauParameterColumns(TableauBase):
     def __init__(self, columns_list, logger_obj=None):
         self.logger = logger_obj
-        self.log(u'Initializing a TableauColumns object')
+        self.log('Initializing a TableauColumns object')
         # List of lxml columns objects
         self.columns_list = columns_list
 

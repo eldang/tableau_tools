@@ -3,7 +3,7 @@ from tableau_tools import *
 from tableau_tools.tabcmd import Tabcmd
 from tableau_tools.tableau_rest_api import *
 
-logger = Logger(u'extract_refresh.log')
+logger = Logger('extract_refresh.log')
 
 
 tabcmd_dir = "C:\\tabcmd\\Command Line Utility\\"

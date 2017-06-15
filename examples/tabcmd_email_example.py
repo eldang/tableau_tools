@@ -23,7 +23,7 @@ tableau_emailer.generate_emails_from_named_schedule_in_repository(schedule_name_
 
 tableau_emailer.tabcmd.site = 'default'
 for region in ['East', 'West', 'Central', 'South']:
-    print "Bulding the {} e-mail".format(region)
+    print("Bulding the {} e-mail".format(region))
     tableau_emailer.generate_email_from_view('donotreply@somewhere.com', 'someone@somewhere.com',
                                              'This viz is the {}!'.format(region), 'basic_email', 'bhowell',
                                              'Book1/Dashboard1', view_filter_map={"Region": region},

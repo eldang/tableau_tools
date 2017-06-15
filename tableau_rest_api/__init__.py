@@ -1,1 +1,1 @@
-from tableau_rest_api_connection import TableauRestApiConnection
+from .tableau_rest_api_connection import TableauRestApiConnection

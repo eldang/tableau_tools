@@ -17,16 +17,16 @@ output_file = open('permissions_audit.txt', 'wb')
 site_content_urls = default.query_all_site_content_urls()
 
 # Headers
-output_file.write(u'Site Content URL,Project Name,Project LUID,Principal Type,Principal Name,Principal LUID')
+output_file.write('Site Content URL,Project Name,Project LUID,Principal Type,Principal Name,Principal LUID')
 project_caps = default.available_capabilities[default.api_version]['project']
 for cap in project_caps:
-    output_file.write(u',{}'.format(cap))
+    output_file.write(',{}'.format(cap))
 workbook_caps = default.available_capabilities[default.api_version]['workbook']
 for cap in workbook_caps:
-    output_file.write(u',{}'.format(cap))
+    output_file.write(',{}'.format(cap))
 datasource_caps = default.available_capabilities[default.api_version]['datasource']
 for cap in datasource_caps:
-    output_file.write(u',{}'.format(cap))
+    output_file.write(',{}'.format(cap))
 output_file.write("\n")
 
 for site_content_url in site_content_urls:
@@ -45,12 +45,12 @@ for site_content_url in site_content_urls:
         for luid in all_perms:
             if site_content_url is None:
                 site_content_url = ''
-            output_file.write(u'{}'.format(site_content_url).encode('utf-8'))
-            output_file.write(u",{},{}".format(project, projects_dict[project]).encode('utf-8'))
-            output_file.write(u",{},{},{}".format(all_perms[luid]["type"], all_perms[luid]["name"], luid).encode('utf-8'))
+            output_file.write('{}'.format(site_content_url).encode('utf-8'))
+            output_file.write(",{},{}".format(project, projects_dict[project]).encode('utf-8'))
+            output_file.write(",{},{},{}".format(all_perms[luid]["type"], all_perms[luid]["name"], luid).encode('utf-8'))
             all_perms_list = proj_obj.convert_all_permissions_to_list(all_perms[luid])
             for perm in all_perms_list:
-                output_file.write(u",{}".format(unicode(perm)))
+                output_file.write(",{}".format(str(perm)))
             output_file.write('\n')
 
 

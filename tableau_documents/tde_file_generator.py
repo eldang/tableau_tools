@@ -97,5 +97,5 @@ class TDEFileGenerator(TableauBase):
                         #	print "The following columns were skipped due to datatypes that were not recognized:\n"
                         #	print skipped_cols
 
-        except TableauException, e:
+        except TableauException as e:
             self.log('Tableau TDE creation error:{}'.format(e))

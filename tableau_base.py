@@ -1,254 +1,254 @@
 import random
-from tableau_exceptions import *
-from logger import Logger
+from .tableau_exceptions import *
+from .logger import Logger
 import re
 from lxml import etree
-from StringIO import StringIO
+from io import StringIO
 
 
 class TableauBase(object):
     def __init__(self):
         # In reverse order to work down until the acceptable version is found on the server, through login process
-        self.supported_versions = (u"10.0", u"9.3", u"9.2", u"9.1", u"9.0")
+        self.supported_versions = ("10.0", "9.3", "9.2", "9.1", "9.0")
         self.logger = None
         self.luid_pattern = r"[0-9a-fA-F]*-[0-9a-fA-F]*-[0-9a-fA-F]*-[0-9a-fA-F]*-[0-9a-fA-F]*"
 
         # Defaults, will get updated with each update. Overwritten by set_tableau_server_version
-        self.version = u"10.0"
-        self.api_version = u"2.3"
-        self.tableau_namespace = u'http://tableau.com/api'
+        self.version = "10.0"
+        self.api_version = "2.3"
+        self.tableau_namespace = 'http://tableau.com/api'
         self.ns_map = {'t': 'http://tableau.com/api'}
         self.ns_prefix = '{' + self.ns_map['t'] + '}'
 
         self.site_roles = (
-            u'Interactor',
-            u'Publisher',
-            u'SiteAdministrator',
-            u'Unlicensed',
-            u'UnlicensedWithPublish',
-            u'Viewer',
-            u'ViewerWithPublish',
-            u'ServerAdministrator'
+            'Interactor',
+            'Publisher',
+            'SiteAdministrator',
+            'Unlicensed',
+            'UnlicensedWithPublish',
+            'Viewer',
+            'ViewerWithPublish',
+            'ServerAdministrator'
         )
 
         server_content_roles_2_0 = {
-                u"project": (
-                    u'Viewer',
-                    u'Interactor',
-                    u'Editor',
-                    u'Data Source Connector',
-                    u'Data Source Editor',
-                    u'Publisher',
-                    u'Project Leader'
+                "project": (
+                    'Viewer',
+                    'Interactor',
+                    'Editor',
+                    'Data Source Connector',
+                    'Data Source Editor',
+                    'Publisher',
+                    'Project Leader'
                 ),
-                u"workbook": (
-                    u'Viewer',
-                    u'Interactor',
-                    u'Editor'
+                "workbook": (
+                    'Viewer',
+                    'Interactor',
+                    'Editor'
                 ),
-                u"datasource": (
-                    u'Data Source Connector',
-                    u'Data Source Editor'
+                "datasource": (
+                    'Data Source Connector',
+                    'Data Source Editor'
                 )
             }
 
         server_content_roles_2_1 = {
-                u"project": (
-                    u'Viewer',
-                    u'Publisher',
-                    u'Project Leader'
+                "project": (
+                    'Viewer',
+                    'Publisher',
+                    'Project Leader'
                 ),
-                u"workbook": (
-                    u'Viewer',
-                    u'Interactor',
-                    u'Editor'
+                "workbook": (
+                    'Viewer',
+                    'Interactor',
+                    'Editor'
                 ),
-                u"datasource": (
-                    u'Editor',
-                    u'Connector'
+                "datasource": (
+                    'Editor',
+                    'Connector'
                 )
             }
 
         self.server_content_roles = {
-            u"2.0": server_content_roles_2_0,
-            u"2.1": server_content_roles_2_1,
-            u"2.2": server_content_roles_2_1,
-            u"2.3": server_content_roles_2_1
+            "2.0": server_content_roles_2_0,
+            "2.1": server_content_roles_2_1,
+            "2.2": server_content_roles_2_1,
+            "2.3": server_content_roles_2_1
         }
 
         self.server_to_rest_capability_map = {
-            u'Add Comment': u'AddComment',
-            u'Move': u'ChangeHierarchy',
-            u'Set Permissions': u'ChangePermissions',
-            u'Connect': u'Connect',
-            u'Delete': u'Delete',
-            u'View Summary Data': u'ExportData',
-            u'Export Image': u'ExportImage',
-            u'Download': u'ExportXml',
-            u'Filter': u'Filter',
-            u'Project Leader': u'ProjectLeader',
-            u'View': u'Read',
-            u'Share Customized': u'ShareView',
-            u'View Comments': u'ViewComments',
-            u'View Underlying Data': u'ViewUnderlyingData',
-            u'Web Edit': u'WebAuthoring',
-            u'Save': u'Write',
-            u'all': u'all'  # special command to do everything
+            'Add Comment': 'AddComment',
+            'Move': 'ChangeHierarchy',
+            'Set Permissions': 'ChangePermissions',
+            'Connect': 'Connect',
+            'Delete': 'Delete',
+            'View Summary Data': 'ExportData',
+            'Export Image': 'ExportImage',
+            'Download': 'ExportXml',
+            'Filter': 'Filter',
+            'Project Leader': 'ProjectLeader',
+            'View': 'Read',
+            'Share Customized': 'ShareView',
+            'View Comments': 'ViewComments',
+            'View Underlying Data': 'ViewUnderlyingData',
+            'Web Edit': 'WebAuthoring',
+            'Save': 'Write',
+            'all': 'all'  # special command to do everything
         }
 
         capabilities_2_0 = {
-                u"project": (
-                    u'AddComment',
-                    u'ChangeHierarchy',
-                    u'ChangePermissions',
-                    u'Connect',
-                    u'Delete',
-                    u'ExportData',
-                    u'ExportImage',
-                    u'ExportXml',
-                    u'Filter',
-                    u'ProjectLeader',
-                    u'Read',
-                    u'ShareView',
-                    u'ViewComments',
-                    u'ViewUnderlyingData',
-                    u'WebAuthoring',
-                    u'Write'
+                "project": (
+                    'AddComment',
+                    'ChangeHierarchy',
+                    'ChangePermissions',
+                    'Connect',
+                    'Delete',
+                    'ExportData',
+                    'ExportImage',
+                    'ExportXml',
+                    'Filter',
+                    'ProjectLeader',
+                    'Read',
+                    'ShareView',
+                    'ViewComments',
+                    'ViewUnderlyingData',
+                    'WebAuthoring',
+                    'Write'
                 ),
-                u"workbook": (
-                    u'AddComment',
-                    u'ChangeHierarchy',
-                    u'ChangePermissions',
-                    u'Delete',
-                    u'ExportData',
-                    u'ExportImage',
-                    u'ExportXml',
-                    u'Filter',
-                    u'Read',
-                    u'ShareView',
-                    u'ViewComments',
-                    u'ViewUnderlyingData',
-                    u'WebAuthoring',
-                    u'Write'
+                "workbook": (
+                    'AddComment',
+                    'ChangeHierarchy',
+                    'ChangePermissions',
+                    'Delete',
+                    'ExportData',
+                    'ExportImage',
+                    'ExportXml',
+                    'Filter',
+                    'Read',
+                    'ShareView',
+                    'ViewComments',
+                    'ViewUnderlyingData',
+                    'WebAuthoring',
+                    'Write'
                 ),
-                u"datasource": (
-                    u'ChangePermissions',
-                    u'Connect',
-                    u'Delete',
-                    u'ExportXml',
-                    u'Read',
-                    u'Write'
+                "datasource": (
+                    'ChangePermissions',
+                    'Connect',
+                    'Delete',
+                    'ExportXml',
+                    'Read',
+                    'Write'
                 )
             }
 
         capabilities_2_1 = {
-                u"project": (u"Read", u"Write", u'ProjectLeader'),
-                u"workbook": (
-                    u'Read',
-                    u'ExportImage',
-                    u'ExportData',
-                    u'ViewComments',
-                    u'AddComment',
-                    u'Filter',
-                    u'ViewUnderlyingData',
-                    u'ShareView',
-                    u'WebAuthoring',
-                    u'Write',
-                    u'ExportXml',
-                    u'ChangeHierarchy',
-                    u'Delete',
-                    u'ChangePermissions',
+                "project": ("Read", "Write", 'ProjectLeader'),
+                "workbook": (
+                    'Read',
+                    'ExportImage',
+                    'ExportData',
+                    'ViewComments',
+                    'AddComment',
+                    'Filter',
+                    'ViewUnderlyingData',
+                    'ShareView',
+                    'WebAuthoring',
+                    'Write',
+                    'ExportXml',
+                    'ChangeHierarchy',
+                    'Delete',
+                    'ChangePermissions',
 
                 ),
-                u"datasource": (
-                    u'Read',
-                    u'Connect',
-                    u'Write',
-                    u'ExportXml',
-                    u'Delete',
-                    u'ChangePermissions'
+                "datasource": (
+                    'Read',
+                    'Connect',
+                    'Write',
+                    'ExportXml',
+                    'Delete',
+                    'ChangePermissions'
                 )
             }
 
         self.available_capabilities = {
-            u"2.0": capabilities_2_0,
-            u"2.1": capabilities_2_1,
-            u"2.2": capabilities_2_1,
-            u'2.3': capabilities_2_1
+            "2.0": capabilities_2_0,
+            "2.1": capabilities_2_1,
+            "2.2": capabilities_2_1,
+            '2.3': capabilities_2_1
         }
 
         self.datasource_class_map = {
-            u"Actian Vectorwise": u"vectorwise",
-            u"Amazon EMR": u"awshadoophive",
-            u"Amazon Redshift": u"redshift",
-            u"Aster Database": u"asterncluster",
-            u"Cloudera Hadoop": u"hadoophive",
-            u"DataStax Enterprise": u"datastax",
-            u"EXASolution": u"exasolution",
-            u"Firebird": u"firebird",
-            u"Generic ODBC": u"genericodbc",
-            u"Google Analytics": u"google-analytics",
-            u"Google BigQuery": u"bigquery",
-            u"Hortonworks Hadooop Hive": u"hortonworkshadoophive",
-            u"HP Vertica": u"vertica",
-            u"IBM BigInsights": u"bigsql",
-            u"IBM DB2": u"db2",
-            u"JavaScript Connector": u"jsconnector",
-            u"MapR Hadoop Hive": u"maprhadoophive",
-            u"MarkLogic": u"marklogic",
-            u"Microsoft Access": u"msaccess",
-            u"Microsoft Analysis Services": u"msolap",
-            u"Microsoft Excel": u"",
-            u"Microsoft PowerPivot": u"powerpivot",
-            u"Microsoft SQL Server": u"sqlserver",
-            u"MySQL": u"mysql",
-            u"IBM Netezza": u"netezza",
-            u"OData": u"odata",
-            u"Oracle": u"oracle",
-            u"Oracle Essbase": u"essbase",
-            u"ParAccel": u"paraccel",
-            u"Pivotal Greenplum": u"greenplum",
-            u"PostgreSQL": u"postgres",
-            u"Progress OpenEdge": u"progressopenedge",
-            u"SAP HANA": u"saphana",
-            u"SAP Netweaver Business Warehouse": u"sapbw",
-            u"SAP Sybase ASE": u"sybasease",
-            u"SAP Sybase IQ": u"sybaseiq",
-            u"Salesforce": u"salesforce",
-            u"Spark SQL": u"spark",
-            u"Splunk": u"splunk",
-            u"Statistical File": u"",
-            u"Tableau Data Extract": u"dataengine",
-            u"Teradata": u"teradata",
-            u"Text file": u"csv"
+            "Actian Vectorwise": "vectorwise",
+            "Amazon EMR": "awshadoophive",
+            "Amazon Redshift": "redshift",
+            "Aster Database": "asterncluster",
+            "Cloudera Hadoop": "hadoophive",
+            "DataStax Enterprise": "datastax",
+            "EXASolution": "exasolution",
+            "Firebird": "firebird",
+            "Generic ODBC": "genericodbc",
+            "Google Analytics": "google-analytics",
+            "Google BigQuery": "bigquery",
+            "Hortonworks Hadooop Hive": "hortonworkshadoophive",
+            "HP Vertica": "vertica",
+            "IBM BigInsights": "bigsql",
+            "IBM DB2": "db2",
+            "JavaScript Connector": "jsconnector",
+            "MapR Hadoop Hive": "maprhadoophive",
+            "MarkLogic": "marklogic",
+            "Microsoft Access": "msaccess",
+            "Microsoft Analysis Services": "msolap",
+            "Microsoft Excel": "",
+            "Microsoft PowerPivot": "powerpivot",
+            "Microsoft SQL Server": "sqlserver",
+            "MySQL": "mysql",
+            "IBM Netezza": "netezza",
+            "OData": "odata",
+            "Oracle": "oracle",
+            "Oracle Essbase": "essbase",
+            "ParAccel": "paraccel",
+            "Pivotal Greenplum": "greenplum",
+            "PostgreSQL": "postgres",
+            "Progress OpenEdge": "progressopenedge",
+            "SAP HANA": "saphana",
+            "SAP Netweaver Business Warehouse": "sapbw",
+            "SAP Sybase ASE": "sybasease",
+            "SAP Sybase IQ": "sybaseiq",
+            "Salesforce": "salesforce",
+            "Spark SQL": "spark",
+            "Splunk": "splunk",
+            "Statistical File": "",
+            "Tableau Data Extract": "dataengine",
+            "Teradata": "teradata",
+            "Text file": "csv"
         }
 
-        self.permissionable_objects = (u'datasource', u'project', u'workbook')
+        self.permissionable_objects = ('datasource', 'project', 'workbook')
 
     def set_tableau_server_version(self, tableau_server_version):
         """
         :type tableau_server_version: unicode
         """
         # API Versioning (starting in 9.2)
-        if unicode(tableau_server_version)in [u"9.2", u"9.3", u"10.0"]:
-            if unicode(tableau_server_version) == u"9.2":
-                self.api_version = u"2.1"
-            elif unicode(tableau_server_version) == u"9.3":
-                self.api_version = u"2.2"
-            elif unicode(tableau_server_version) == u'10.0':
-                self.api_version = u'2.3'
-            self.tableau_namespace = u'http://tableau.com/api'
+        if str(tableau_server_version)in ["9.2", "9.3", "10.0"]:
+            if str(tableau_server_version) == "9.2":
+                self.api_version = "2.1"
+            elif str(tableau_server_version) == "9.3":
+                self.api_version = "2.2"
+            elif str(tableau_server_version) == '10.0':
+                self.api_version = '2.3'
+            self.tableau_namespace = 'http://tableau.com/api'
             self.ns_map = {'t': 'http://tableau.com/api'}
             self.version = tableau_server_version
             self.ns_prefix = '{' + self.ns_map['t'] + '}'
-        elif unicode(tableau_server_version) in [u"9.0", u"9.1"]:
-            self.api_version = u"2.0"
-            self.tableau_namespace = u'http://tableausoftware.com/api'
+        elif str(tableau_server_version) in ["9.0", "9.1"]:
+            self.api_version = "2.0"
+            self.tableau_namespace = 'http://tableausoftware.com/api'
             self.ns_map = {'t': 'http://tableausoftware.com/api'}
             self.version = tableau_server_version
             self.ns_prefix = '{' + self.ns_map['t'] + '}'
         else:
-            raise InvalidOptionException(u"Please specify tableau_server_version as a string. '9.0' or '9.2' etc...")
+            raise InvalidOptionException("Please specify tableau_server_version as a string. '9.0' or '9.2' etc...")
 
     # Logging Methods
     def enable_logging(self, logger_obj):
@@ -278,7 +278,7 @@ class TableauBase(object):
     # Method to handle single str or list and return a list
     @staticmethod
     def to_list(x):
-        if isinstance(x, (str, unicode)):
+        if isinstance(x, str):
             l = [x]  # Make single into a collection
         else:
             l = x
@@ -297,7 +297,7 @@ class TableauBase(object):
     # This builds a simple 30 hex digit string
     @staticmethod
     def generate_boundary_string():
-        random_digits = [random.SystemRandom().choice('0123456789abcdef') for n in xrange(30)]
+        random_digits = [random.SystemRandom().choice('0123456789abcdef') for n in range(30)]
         s = "".join(random_digits)
         return s
 
@@ -329,7 +329,7 @@ class TableauBase(object):
         if permission_name in self.server_to_rest_capability_map:
             return self.server_to_rest_capability_map[permission_name]
         else:
-            raise InvalidOptionException(u'{} is not a permission name on the Tableau Server'.format(permission_name))
+            raise InvalidOptionException('{} is not a permission name on the Tableau Server'.format(permission_name))
 
     # 32 hex characters with 4 dashes
     def is_luid(self, val):
@@ -353,8 +353,8 @@ class TableauBase(object):
         for obj in dest_obj_list:
             dest_obj_dict[obj.get_luid()] = obj
 
-        new_obj_luids = new_obj_dict.keys()
-        dest_obj_luids = dest_obj_dict.keys()
+        new_obj_luids = list(new_obj_dict.keys())
+        dest_obj_luids = list(dest_obj_dict.keys())
 
         if set(dest_obj_luids).issuperset(new_obj_luids):
             # At this point, we know the new_objs do exist on the current obj, so let's see if they are identical
@@ -362,12 +362,12 @@ class TableauBase(object):
                 new_obj = new_obj_dict.get(luid)
                 dest_obj = dest_obj_dict.get(luid)
 
-                self.log(u"Capabilities to be set:")
+                self.log("Capabilities to be set:")
                 new_obj_cap_dict = new_obj.get_capabilities_dict()
-                self.log(unicode(new_obj_cap_dict))
-                self.log(u"Capabilities that were originally set:")
+                self.log(str(new_obj_cap_dict))
+                self.log("Capabilities that were originally set:")
                 dest_obj_cap_dict = dest_obj.get_capabilities_dict()
-                self.log(unicode(dest_obj_cap_dict))
+                self.log(str(dest_obj_cap_dict))
                 if new_obj_cap_dict == dest_obj_cap_dict:
                     self.end_log_block()
                     return True
@@ -395,8 +395,8 @@ class TableauBase(object):
                 return False
             else:
                 # If LUIDs don't match, they must differ
-                new_obj_luids = new_obj_dict.keys()
-                dest_obj_luids = dest_obj_dict.keys()
+                new_obj_luids = list(new_obj_dict.keys())
+                dest_obj_luids = list(dest_obj_dict.keys())
                 new_obj_luids.sort()
                 dest_obj_luids.sort()
                 if cmp(new_obj_luids, dest_obj_luids) != 0:
@@ -417,29 +417,29 @@ class TableauBase(object):
     # Dict { capability_name : mode } into XML with checks for validity. Set type to 'workbook' or 'datasource'
     def build_capabilities_xml_from_dict(self, capabilities_dict, obj_type):
         if obj_type not in self.permissionable_objects:
-            error_text = u'objtype can only be "project", "workbook" or "datasource", was given {}'
-            raise InvalidOptionException(error_text.format(u'obj_type'))
-        xml = u'<capabilities>\n'
+            error_text = 'objtype can only be "project", "workbook" or "datasource", was given {}'
+            raise InvalidOptionException(error_text.format('obj_type'))
+        xml = '<capabilities>\n'
         for cap in capabilities_dict:
             # Skip if the capability is set to None
             if capabilities_dict[cap] is None:
                 continue
-            if capabilities_dict[cap] not in [u'Allow', u'Deny']:
-                raise InvalidOptionException(u'Capability mode can only be "Allow",  "Deny" (case-sensitive)')
-            if obj_type == u'project':
-                if cap not in self.available_capabilities[self.api_version][u"project"]:
-                    raise InvalidOptionException(u'{} is not a valid capability for a project'.format(cap))
-            if obj_type == u'datasource':
+            if capabilities_dict[cap] not in ['Allow', 'Deny']:
+                raise InvalidOptionException('Capability mode can only be "Allow",  "Deny" (case-sensitive)')
+            if obj_type == 'project':
+                if cap not in self.available_capabilities[self.api_version]["project"]:
+                    raise InvalidOptionException('{} is not a valid capability for a project'.format(cap))
+            if obj_type == 'datasource':
                 # Ignore if not available for datasource
-                if cap not in self.available_capabilities[self.api_version][u"datasource"]:
-                    self.log(u'{} is not a valid capability for a datasource'.format(cap))
+                if cap not in self.available_capabilities[self.api_version]["datasource"]:
+                    self.log('{} is not a valid capability for a datasource'.format(cap))
                     continue
-            if obj_type == u'workbook':
+            if obj_type == 'workbook':
                 # Ignore if not available for workbook
-                if cap not in self.available_capabilities[self.api_version][u"workbook"]:
-                    self.log(u'{} is not a valid capability for a workbook'.format(cap))
+                if cap not in self.available_capabilities[self.api_version]["workbook"]:
+                    self.log('{} is not a valid capability for a workbook'.format(cap))
                     continue
-            xml += u'<capability name="{}" mode="{}" />'.format(cap, capabilities_dict[cap])
-        xml += u'</capabilities>'
+            xml += '<capability name="{}" mode="{}" />'.format(cap, capabilities_dict[cap])
+        xml += '</capabilities>'
         return xml
 

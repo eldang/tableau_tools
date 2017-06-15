@@ -61,7 +61,7 @@ class PublishedContent(TableauBase):
         self.get_permissions_from_server()
         gcap_obj_list = self.current_gcap_obj_list
         for cur_gcap_obj in gcap_obj_list:
-            self.log(u"Removing exisiting permissions for luid {}".format(cur_gcap_obj.get_luid()))
+            self.log("Removing exisiting permissions for luid {}".format(cur_gcap_obj.get_luid()))
             if self.default is False:
                 self.t_rest_api.delete_permissions_by_luids(self.obj_type, self.luid,
                                                             cur_gcap_obj.get_luid(),
@@ -89,11 +89,11 @@ class PublishedContent(TableauBase):
                 need_to_change = self.are_capabilities_obj_dicts_identical(
                     cur_gcap_obj.get_capabilities_dict(), new_gcap_obj.get_capabilities_dict()
                 )
-                self.log(u"Existing permissions found for luid {}. Are there differences? {}".format(cur_gcap_obj.get_luid(),
+                self.log("Existing permissions found for luid {}. Are there differences? {}".format(cur_gcap_obj.get_luid(),
                                                                                                      str(need_to_change)))
                 # Delete all existing permissions
                 if need_to_change is True:
-                    self.log(u"Removing exisiting permissions for luid {}".format(cur_gcap_obj.get_luid()))
+                    self.log("Removing exisiting permissions for luid {}".format(cur_gcap_obj.get_luid()))
                     if self.default is False:
                         self.t_rest_api.delete_permissions_by_luids(self.obj_type, self.luid,
                                                                     cur_gcap_obj.get_luid(),
@@ -118,10 +118,10 @@ class PublishedContent(TableauBase):
                 specified_cap_count += 1
         if specified_cap_count > 0:
             if self.default is False:
-                self.log(u"Adding permissions")
+                self.log("Adding permissions")
                 new_perms_xml = self.t_rest_api.add_permissions_by_gcap_obj_list(self.obj_type, self.luid, [new_gcap_obj, ])
             if self.default is True:
-                self.log(u"Adding default permissions")
+                self.log("Adding default permissions")
                 new_perms_xml = self.t_rest_api.add_default_permissions_to_project_by_gcap_obj_list(self.luid, self.obj_type,
                                                                                     [True, ], [new_gcap_obj, ])
             # Update the internal representation from the newly returned permissions XML
@@ -133,32 +133,32 @@ class PublishedContent(TableauBase):
 
 class Project(PublishedContent):
     def __init__(self, luid, tableau_rest_api_obj, tableau_server_version, logger_obj=None):
-        PublishedContent.__init__(self, luid, u"project", tableau_rest_api_obj, tableau_server_version,
+        PublishedContent.__init__(self, luid, "project", tableau_rest_api_obj, tableau_server_version,
                                   logger_obj=logger_obj)
         self.log("Passing tableau_server_version {}".format(tableau_server_version))
         # projects in 9.2 have child workbook and datasource permissions
-        if self.api_version != u"2.0":
+        if self.api_version != "2.0":
                 self.workbook_default = Workbook(self.luid, self.t_rest_api,
                                                  tableau_server_version=tableau_server_version,
                                                  default=True, logger_obj=logger_obj)
                 self.datasource_default = Datasource(self.luid, self.t_rest_api,
                                                      tableau_server_version=tableau_server_version,
                                                      default=True, logger_obj=logger_obj)
-        self.__available_capabilities = self.available_capabilities[self.api_version][u"project"]
+        self.__available_capabilities = self.available_capabilities[self.api_version]["project"]
         self.permissions_locked = None
         self.permissions_locked = self.are_permissions_locked()
 
     def are_permissions_locked(self):
         self.start_log_block()
-        if self.api_version != u"2.0":
+        if self.api_version != "2.0":
             proj = self.t_rest_api.query_project_by_luid(self.luid)
-            locked_permissions = proj.get(u'contentPermissions')
-            if locked_permissions == u'ManagedByOwner':
+            locked_permissions = proj.get('contentPermissions')
+            if locked_permissions == 'ManagedByOwner':
                 return False
-            if locked_permissions == u'LockedToProject':
+            if locked_permissions == 'LockedToProject':
                 return True
         else:
-            self.log(u"Permissions cannot be locked in 9.1 and previous")
+            self.log("Permissions cannot be locked in 9.1 and previous")
             return None
         self.end_log_block()
 
@@ -171,20 +171,20 @@ class Project(PublishedContent):
 
     def lock_permissions(self):
         self.start_log_block()
-        if self.api_version != u"2.0":
+        if self.api_version != "2.0":
             if self.permissions_locked is False:
                 self.t_rest_api.lock_project_permissions(self.luid)
         else:
-            self.log(u"Permissions cannot be locked in 9.1 and previous")
+            self.log("Permissions cannot be locked in 9.1 and previous")
         self.end_log_block()
 
     def unlock_permissions(self):
         self.start_log_block()
-        if self.api_version != u"2.0":
+        if self.api_version != "2.0":
             if self.permissions_locked is True:
                 self.t_rest_api.unlock_project_permissions(self.luid)
         else:
-            self.log(u"Permissions cannot be locked in 9.1 and previous")
+            self.log("Permissions cannot be locked in 9.1 and previous")
         self.end_log_block()
 
     def query_all_permissions(self):
@@ -207,13 +207,13 @@ class Project(PublishedContent):
             all_permissions[gcap_luid]["project_caps"] = gcap_perms
             if gcap_obj_type == 'user':
                 all_permissions[gcap_luid]["type"] = 'user'
-                for name, luid in self.users_dict_cache.items():
+                for name, luid in list(self.users_dict_cache.items()):
                     if gcap_luid == luid:
                         all_permissions[gcap_luid]["name"] = name
 
             elif gcap_obj_type == 'group':
                 all_permissions[gcap_luid]["type"] = 'group'
-                for name, luid in self.groups_dict_cache.items():
+                for name, luid in list(self.groups_dict_cache.items()):
                     if gcap_luid == luid:
                         all_permissions[gcap_luid]["name"] = name
 
@@ -228,12 +228,12 @@ class Project(PublishedContent):
                                               "workbook_default_caps": None, "datasource_default_caps": None}
                 if gcap_obj_type == 'user':
                     all_permissions[gcap_luid]["type"] = 'user'
-                    for name, luid in self.users_dict_cache.items():
+                    for name, luid in list(self.users_dict_cache.items()):
                         if gcap_luid == luid:
                             all_permissions[gcap_luid]["name"] = name
                 elif gcap_obj_type == 'group':
                     all_permissions[gcap_luid]["type"] = 'group'
-                    for name, luid in self.groups_dict_cache.items():
+                    for name, luid in list(self.groups_dict_cache.items()):
                         if gcap_luid == luid:
                             all_permissions[gcap_luid]["name"] = name
 
@@ -250,12 +250,12 @@ class Project(PublishedContent):
                                               "workbook_default_caps": None, "datasource_default_caps": None}
                 if gcap_obj_type == 'user':
                     all_permissions[gcap_luid]["type"] = 'user'
-                    for name, luid in self.users_dict_cache.items():
+                    for name, luid in list(self.users_dict_cache.items()):
                         if gcap_luid == luid:
                             all_permissions[gcap_luid]["name"] = name
                 elif gcap_obj_type == 'group':
                     all_permissions[gcap_luid]["type"] = 'group'
-                    for name, luid in self.groups_dict_cache.items():
+                    for name, luid in list(self.groups_dict_cache.items()):
                         if gcap_luid == luid:
                             all_permissions[gcap_luid]["name"] = name
             all_permissions[gcap_luid]["datasource_default_caps"] = gcap_perms
@@ -267,19 +267,19 @@ class Project(PublishedContent):
         final_list = []
         # Project
 
-        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version][u'project']:
+        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version]['project']:
             if all_permissions["project_caps"] is None:
                 final_list.append(None)
             else:
                 final_list.append(all_permissions["project_caps"][cap])
         # Workbook
-        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version][u'workbook']:
+        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version]['workbook']:
             if all_permissions["workbook_default_caps"] is None:
                 final_list.append(None)
             else:
                 final_list.append(all_permissions["workbook_default_caps"][cap])
         # Datasource
-        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version][u'datasource']:
+        for cap in self.t_rest_api.available_capabilities[self.t_rest_api.api_version]['datasource']:
             if all_permissions["datasource_default_caps"] is None:
                 final_list.append(None)
             else:
@@ -289,13 +289,13 @@ class Project(PublishedContent):
 
 class Workbook(PublishedContent):
     def __init__(self, luid, tableau_rest_api_obj, tableau_server_version, default=False, logger_obj=None):
-        PublishedContent.__init__(self, luid, u"workbook", tableau_rest_api_obj, tableau_server_version,
+        PublishedContent.__init__(self, luid, "workbook", tableau_rest_api_obj, tableau_server_version,
                                   default=default, logger_obj=logger_obj)
-        self.__available_capabilities = self.available_capabilities[self.api_version][u"workbook"]
+        self.__available_capabilities = self.available_capabilities[self.api_version]["workbook"]
 
 
 class Datasource(PublishedContent):
     def __init__(self, luid, tableau_rest_api_obj, tableau_server_version, default=False, logger_obj=None):
-        PublishedContent.__init__(self, luid, u"datasource", tableau_rest_api_obj, tableau_server_version,
+        PublishedContent.__init__(self, luid, "datasource", tableau_rest_api_obj, tableau_server_version,
                                   default=default, logger_obj=logger_obj)
-        self.__available_capabilities = self.available_capabilities[self.api_version][u"datasource"]
+        self.__available_capabilities = self.available_capabilities[self.api_version]["datasource"]

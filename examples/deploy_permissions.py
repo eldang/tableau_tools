@@ -3,7 +3,7 @@ from tableau_tools import *
 from tableau_tools.tableau_rest_api import *
 import time
 
-logger = Logger(u'scratch.log')
+logger = Logger('scratch.log')
 
 server = 'http://127.0.0.1'
 username = ''
@@ -30,19 +30,19 @@ for site in sites_to_create:
     # When a project is created, it takes the settings of the Default project
     # Set All Users to Undefined
     time.sleep(2)
-    all_users_luid = t.query_group_luid_by_name(u'All Users')
-    default_project_luid = t.query_project_luid_by_name(u'Default')
+    all_users_luid = t.query_group_luid_by_name('All Users')
+    default_project_luid = t.query_project_luid_by_name('Default')
     default_proj_obj = t.get_project_object_by_luid(default_project_luid)
 
-    gcap_obj_p = t.get_grantee_capabilities_object(u'group', all_users_luid, u'project')
+    gcap_obj_p = t.get_grantee_capabilities_object('group', all_users_luid, 'project')
     gcap_obj_p.set_all_to_unspecified()
     default_proj_obj.set_permissions_by_gcap_obj(gcap_obj_p)
 
-    gcap_obj_ds = t.get_grantee_capabilities_object(u'group', all_users_luid, u'workbook')
+    gcap_obj_ds = t.get_grantee_capabilities_object('group', all_users_luid, 'workbook')
     gcap_obj_ds.set_all_to_unspecified()
     default_proj_obj.datasource_default.set_permissions_by_gcap_obj(gcap_obj_ds)
 
-    gcap_obj_wb = t.get_grantee_capabilities_object(u'group', all_users_luid, u'workbook')
+    gcap_obj_wb = t.get_grantee_capabilities_object('group', all_users_luid, 'workbook')
     gcap_obj_wb.set_all_to_unspecified()
     default_proj_obj.workbook_default.set_permissions_by_gcap_obj(gcap_obj_wb)
 
@@ -57,40 +57,40 @@ for site in sites_to_create:
 
         # Each set of permissions is represented by one GranteeCapabilities object
         # Project class can do testing and comparison if send them one at a time
-        g1_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 1'], u'project')
-        g1_gcap_obj.set_capabilities_to_match_role(u'Viewer')
+        g1_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 1'], 'project')
+        g1_gcap_obj.set_capabilities_to_match_role('Viewer')
         proj_obj.set_permissions_by_gcap_obj(g1_gcap_obj)
 
-        g2_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 2'], u'project')
-        g2_gcap_obj.set_capabilities_to_match_role(u'Viewer')
+        g2_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 2'], 'project')
+        g2_gcap_obj.set_capabilities_to_match_role('Viewer')
         proj_obj.set_permissions_by_gcap_obj(g2_gcap_obj)
 
-        g3_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 3'], u'project')
-        g3_gcap_obj.set_capabilities_to_match_role(u'Publisher')
+        g3_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 3'], 'project')
+        g3_gcap_obj.set_capabilities_to_match_role('Publisher')
         proj_obj.set_permissions_by_gcap_obj(g3_gcap_obj)
 
         # Also need to set the Default Workbook permissions
-        g1_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 1'], u'workbook')
-        g1_gcap_obj.set_capabilities_to_match_role(u'Editor')
+        g1_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 1'], 'workbook')
+        g1_gcap_obj.set_capabilities_to_match_role('Editor')
         proj_obj.workbook_default.set_permissions_by_gcap_obj(g1_gcap_obj)
 
-        g2_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 2'], u'workbook')
-        g2_gcap_obj.set_capabilities_to_match_role(u'Interactor')
+        g2_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 2'], 'workbook')
+        g2_gcap_obj.set_capabilities_to_match_role('Interactor')
         proj_obj.workbook_default.set_permissions_by_gcap_obj(g2_gcap_obj)
 
-        g3_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 3'], u'workbook')
-        g3_gcap_obj.set_capabilities_to_match_role(u'Viewer')
+        g3_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 3'], 'workbook')
+        g3_gcap_obj.set_capabilities_to_match_role('Viewer')
         proj_obj.workbook_default.set_permissions_by_gcap_obj(g3_gcap_obj)
 
         # Also need to set the Default Data Source permissions
-        g1_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 1'], u'datasource')
-        g1_gcap_obj.set_capabilities_to_match_role(u'Connector')
+        g1_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 1'], 'datasource')
+        g1_gcap_obj.set_capabilities_to_match_role('Connector')
         proj_obj.datasource_default.set_permissions_by_gcap_obj(g1_gcap_obj)
 
-        g2_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 2'], u'datasource')
-        g2_gcap_obj.set_capabilities_to_match_role(u'Connector')
+        g2_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 2'], 'datasource')
+        g2_gcap_obj.set_capabilities_to_match_role('Connector')
         proj_obj.datasource_default.set_permissions_by_gcap_obj(g2_gcap_obj)
 
-        g3_gcap_obj = t.get_grantee_capabilities_object(u'group', groups_dict['Group 3'], u'datasource')
-        g3_gcap_obj.set_capabilities_to_match_role(u'Editor')
+        g3_gcap_obj = t.get_grantee_capabilities_object('group', groups_dict['Group 3'], 'datasource')
+        g3_gcap_obj.set_capabilities_to_match_role('Editor')
         proj_obj.datasource_default.set_permissions_by_gcap_obj(g3_gcap_obj)
